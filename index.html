@@ -1,0 +1,470 @@
+<body lang="en"><head>
+        <meta charset="UTF-8">
+        <link rel="shortcut icon" type="image/x-icon" href="https://static.codepen.io/assets/favicon/favicon-aec34940fbc1a6e787974dcd360f2c6b63348d4b1f4e06c77743096d55480f33.ico">
+        <link rel="mask-icon" type="" href="https://static.codepen.io/assets/favicon/logo-pin-8f3771b1072e3c38bd662872f6b673a722f4b3ca2421637d5596661b4e2132cc.svg" color="#111">
+        <title>CodePen - HEX to feColorMatrix converter</title>
+        <style>
+          :root {
+          --red: #cd1c47;
+          --green: #1ccd81;
+          --blue: #1c96cd;
+          --background: #1a2b34;
+        }
+        
+        .rVal, .gVal, .bVal, .aVal {
+          font-weight: bold;
+        }
+        
+        .rVal {
+          color: var(--red);
+        }
+        
+        .gVal {
+          color: var(--green);
+        }
+        
+        .bVal {
+          color: var(--blue);
+        }
+        
+        #svg {
+          display: none;
+        }
+        
+        body {
+          background-color: var(--background);
+          color: #555;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          min-height: 100vh;
+          font-family: -apple-system, BlinkMacSystemFont,  "Segoe UI", "Roboto", "Oxygen", "Ubuntu", "Cantarell",  "Fira Sans", "Droid Sans", "Helvetica Neue",  sans-serif;
+          font-weight: 300;
+          font-size: 0.8rem;
+        }
+        
+        p {
+          margin: 0.2rem;
+        }
+        
+        .container {
+          background-color: #fff;
+          min-width: 450px;
+          width: calc(100vw - 100px);
+          height: auto;
+          padding: 3rem;
+          box-sizing: border-box;
+          display: flex;
+          justify-content: space-around;
+          align-items: center;
+          flex-direction: column;
+          box-shadow: 3px 3px 8px 2px #00000030;
+        }
+        
+        .icon {
+          padding: 2rem;
+          border-radius: 10%;
+          margin: 20px auto;
+          height: 100px;
+          width: 100px;
+          filter: url(#colorFilter);
+          -webkit-filter: url(#colorFilter);
+          background-position: center;
+          /* Center the image */
+          background-repeat: no-repeat;
+          /* Do not repeat the image */
+          background-size: 80%;
+          /* Resize the background image to cover the entire container */
+        }
+        
+        .blackIcon {
+          filter: invert(100%) url(#colorFilter);
+          -webkit-filter: invert(100%) url(#colorFilter);
+        }
+        
+        .hexForm {
+          text-align: center;
+        }
+        
+        label {
+          display: block;
+          margin-bottom: 1rem;
+        }
+        
+        input {
+          border: none;
+          border-bottom: 1.5px solid var(--background);
+          font-size: 14px;
+          outline: none;
+          margin-bottom: 15px;
+          color: #828186;
+          font-weight: 300;
+        }
+        
+        input:valid ~ .submitButton {
+          border: 1.5px solid var(--background);
+        }
+        
+        input:valid ~ .submitButton:active, input:valid ~ .submitButton:focus {
+          border: 1.5px solid #ddd;
+        }
+        
+        .error {
+          margin-top: 1rem;
+          color: #af2929;
+        }
+        
+        button {
+          display: inline-block;
+          border: 1.5px solid #eee;
+          padding: 0.5rem 1rem;
+          margin: 1rem;
+          min-width: 100px;
+          text-decoration: none;
+          background: #eee;
+          color: #555;
+          font-size: 0.8rem;
+          cursor: pointer;
+          text-align: center;
+          transition: all 250ms ease-in-out,  transform 150ms ease;
+          -webkit-appearance: none;
+          -moz-appearance: none;
+        }
+        
+        button:hover,
+        button:focus {
+          background: #ddd;
+          border: 1.5px solid var(--background);
+        }
+        
+        button:focus {
+          outline: none;
+          border: 1.5px solid #ddd;
+        }
+        
+        button:active {
+          transform: scale(0.99);
+        }
+        
+        .hash {
+          color: var(--background);
+          font-weight: 400;
+        }
+        
+        .clear {
+          border: 1.5px solid var(--background);
+        }
+        
+        .codeSnippets {
+          display: flex;
+          flex-direction: column;
+          justify-content: space-around;
+          margin-top: 1rem;
+        }
+        
+        .codeSnippet {
+          margin: 0 10px;
+        }
+        
+        .codeSnippets p {
+          text-align: center;
+          display: none;
+        }
+        
+        .codeSnippet-svg, .codeSnippet-css {
+          position: relative;
+        }
+        
+        pre {
+          background-color: #1a2b34;
+          padding-right: 1.5rem;
+          color: #bcbcbc;
+          font-size: 0.8rem;
+        }
+        
+        .clipboard pre {
+          cursor: pointer;
+        }
+        
+        .clipboard .codeSnippet-svg, .clipboard .codeSnippet-css {
+          overflow: hidden;
+        }
+        
+        .clipboard .codeSnippet-svg:after, .clipboard .codeSnippet-css:after {
+          position: absolute;
+          content: "copied to clipboard";
+          width: 100%;
+          height: 100%;
+          top: 0;
+          left: 0;
+          opacity: 0;
+          color: #fff;
+          text-size: 1.5rem;
+          background-color: var(--background);
+          transition: all 150ms cubic-bezier(0.175, 0.885, 0.32, 1.275);
+          pointer-events: none;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .clipboard .success.codeSnippet-svg:after, .clipboard .success.codeSnippet-css:after {
+          opacity: 0.8;
+          transform: scale(1.23);
+        }
+        
+        .clipboard .codeSnippets p {
+          display: block;
+        }
+        
+        #black:checked ~ #blackLabel {
+          font-weight: bold;
+        }
+        
+        #white:checked ~ #whiteLabel {
+          font-weight: bold;
+        }
+        
+        label {
+          display: inline-block;
+        }
+        
+        #black:checked ~ .icon {
+          background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/756881/icon-instagram-black.svg");
+        }
+        
+        #white:checked ~ .icon {
+          background-color: #1a2b34;
+          background-image: url("https://s3-us-west-2.amazonaws.com/s.cdpn.io/756881/icon-instagram.svg");
+        }
+        
+        @media screen and (min-width: 700px) {
+          .container {
+            width: auto;
+            height: auto;
+            padding: 3rem;
+          }
+        }
+        </style>
+        <script>
+          window.console = window.console || function(t) {};
+        </script>
+        <script>
+          if (document.location.search.match(/type=embed/gi)) {
+            window.parent.postMessage("resize", "*");
+          }
+        </script>
+        </head>
+        <body translate="no" class="clipboard" style="--background:#00ce00;">
+        <svg xmlns="http://www.w3.org/2000/svg" version="1.1" id="svg">
+        <defs>
+        <filter id="colorFilter">
+        <feColorMatrix color-interpolation-filters="sRGB" id="feColorMatrix" type="matrix" values="0.00 0 0 0 0 0 0.81 0 0 0 0 0 0.00 0 0 0 0 0 1 0"></feColorMatrix>
+        </filter>
+        </defs>
+        </svg>
+        <div class="container">
+        <div class="icon-color">
+        <span>Does your icon have a</span>
+        <input type="radio" id="white" name="drone" value="white" checked="">
+        <label for="white" id="whiteLabel">white</label>
+        <span>or</span>
+        <input type="radio" id="black" name="drone" value="black">
+        <label for="black" id="blackLabel">black</label>
+        <span>fill</span>
+        <div class="icon"></div>
+        </div>
+        <div class="hexForm">
+        <label for="hex">Input HEX code</label>
+        <span class="hash">#</span>
+        <input type="text" class="hexInput" name="name" required="" maxlength="6" pattern="[0-9A-Fa-f]{6}$" title="Hex codes must be 6 digits" autocomplete="off">
+        <br>
+        <button class="submitButton">submit</button>
+        <button class="clearButton clear">clear</button>
+        <p><small class="error"> </small></p>
+        </div>
+        <div class="codeSnippets">
+        <p><small>click to copy code snippets</small></p>
+        <div class="codeSnippet">
+        <div class="copydiv"></div>
+        <pre class="codeSnippet-svg">        <code class="SVGCode">
+                &lt;svg id="svg"&gt;
+                  &lt;defs&gt;
+                    &lt;filter id="colorFilter"&gt;
+                      &lt;feColorMatrix 
+                        color-interpolation-filters="sRGB"
+                        type="matrix"
+                        values="<strong class="rVal">0.00</strong> 0   0   0   0
+                                0   <strong class="gVal">0.81</strong>  0   0   0
+                                0   0   <strong class="bVal">0.00</strong>  0   0
+                                0   0   0   1   0 "/&gt;
+                    &lt;/filter&gt;
+                  &lt;/defs&gt;
+                &lt;/svg&gt;
+                </code>
+              </pre>
+        </div>
+        <div class="codeSnippet">
+        <pre class="codeSnippet-css">        <code class="CSSCode">
+                .icon{
+                  filter: <span class="invert"></span>url(#colorFilter);
+                }
+                </code>
+               </pre>
+        </div>
+        <p><small class="info"> </small></p>
+        </div>
+        </div>
+        <script src="https://static.codepen.io/assets/common/stopExecutionOnTimeout-de7e2ef6bfefd24b79a3f68b414b87b8db5b08439cac3f1012092b2290c719cd.js"></script>
+        <script id="rendered-js">
+              const svg = document.querySelector("#svg");
+        const feColorMatrix = document.querySelector("#feColorMatrix");
+        let numberList = [1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0];
+        const submitButton = document.querySelector(".submitButton");
+        const body = document.querySelector("body");
+        const SVGCode = document.querySelector(".SVGCode");
+        const blackIcon = document.querySelector("#black");
+        const whiteIcon = document.querySelector("#white");
+        const icon = document.querySelector(".icon");
+        const SVGCodeCont = document.querySelector(".codeSnippet-svg");
+        const CSSCodeCont = document.querySelector(".codeSnippet-css");
+        const CSSCode = document.querySelector(".CSSCode");
+        const info = document.querySelector(".info");
+        const invert = document.querySelector(".invert");
+        const hexInput = document.querySelector(".hexInput");
+        const clearButton = document.querySelector(".clearButton");
+        const rVal = document.querySelector(".rVal");
+        const gVal = document.querySelector(".gVal");
+        const bVal = document.querySelector(".bVal");
+        const error = document.querySelector(".error");
+        
+        // ^ match beginning
+        // # a hash
+        // [a-f0-9] any letter from 0-9 and a-f
+        // {6} the previous group appears exactly 6 times
+        // $ match end
+        // i ignore case
+        function check(hex) {
+          if (/[0-9A-F]{6}$/i.test(hex)) {
+            return true;
+          }
+        }
+        
+        function hexTofeColorMatrix(hex) {
+          let RGB = [];
+          for (let i = 0; i < hex.length; i += 2) {if (window.CP.shouldStopExecution(0)) break;
+            const firstDigit = parseInt(hex[i], 16);
+        
+            const firstDigitPartial = firstDigit * 16;
+        
+            let RGBValue = parseInt(hex[i + 1], 16) + firstDigitPartial;
+        
+            RGBValue = RGBValue / 255;
+        
+            RGBValue = RGBValue.toFixed(2);
+        
+            RGB.push(RGBValue);
+          }window.CP.exitedLoop(0);
+        
+          const red = RGB[0];
+          const green = RGB[1];
+          const blue = RGB[2];
+        
+          numberList[0] = red;
+          numberList[6] = green;
+          numberList[12] = blue;
+        
+          rVal.innerHTML = RGB[0];
+          gVal.innerHTML = RGB[1];
+          bVal.innerHTML = RGB[2];
+        
+          feColorMatrix.setAttribute("values", numberList.join(' '));
+        };
+        
+        function backgroundColour(hex) {
+          body.style.setProperty("--background", "#" + hex);
+        }
+        
+        function clickToCopy(codeContainer, code) {
+          navigator.clipboard.writeText(code.innerText);
+          codeContainer.classList.add("success");
+          setTimeout(function () {
+            codeContainer.classList.remove("success");
+          }, 800);
+        }
+        
+        // click to copy CSS and SVG if there's a clipboard function
+        (() => {
+          if (navigator.clipboard) {
+            body.classList.add("clipboard");
+            CSSCodeCont.addEventListener("click", () => {
+              clickToCopy(CSSCodeCont, CSSCode);
+            });
+            SVGCodeCont.addEventListener("click", () => {
+              clickToCopy(SVGCodeCont, SVGCode);
+            });
+          }
+        })();
+        
+        function iconColour() {
+          if (whiteIcon.checked) {
+            icon.classList.remove("blackIcon");
+            invert.innerHTML = "";
+            hexTofeColorMatrix("ffffff");
+            info.innerHTML = "";
+          }
+        }
+        
+        blackIcon.addEventListener("click", iconColour);
+        whiteIcon.addEventListener("click", iconColour);
+        
+        // check if hex is valid, if so change background color var and convert hex
+        // if not prompt user to enter a valid hex
+        submitButton.addEventListener("click", event => {
+          if (check(hexInput.value)) {
+            hexTofeColorMatrix(hexInput.value);
+            backgroundColour(hexInput.value);
+            error.innerHTML = " ";
+          } else {
+            error.innerHTML = "please input a valid 6 digit hex code";
+          }
+          if (blackIcon.checked) {
+            icon.classList.add("blackIcon");
+            invert.innerHTML = "invert(100%) ";
+            info.innerHTML = "Black icons have to be inverted to white before using the SVG colour filter";
+          } else {
+            info.innerHTML = " ";
+          }
+        });
+        
+        clearButton.addEventListener("click", event => {
+          hexInput.value = "";
+          clearButton.classList.remove("clear");
+          if (blackIcon.checked) {
+            hexTofeColorMatrix("000000");
+          } else {
+            hexTofeColorMatrix("ffffff");
+          }
+        });
+        
+        // Add an active visual cue to clear button when a hex code is entered
+        hexInput.addEventListener("input", event => {
+          if (hexInput.value.length > 0) {
+            clearButton.classList.add("clear");
+          } else {
+            clearButton.classList.remove("clear");
+          }
+        });
+        
+        // Execute a function when the user releases a key on the keyboard
+        hexInput.addEventListener("keyup", event => {
+          // Number 13 is the "Enter" key on the keyboard
+          if (event.keyCode === 13) {
+            submitButton.click();
+          }
+        });
+              //# sourceURL=pen.js
+            </script>
+        
+        
+        </body></body>
